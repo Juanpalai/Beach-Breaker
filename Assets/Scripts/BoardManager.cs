@@ -14,8 +14,7 @@ public class BoardManager : MonoBehaviour
     public bool isShifting { get; set; }
 
     private Candy selectedCandy;
-    hello,
-
+    
     public const int MinCandiesToMatch = 2;
 
     // Start is called before the first frame update
