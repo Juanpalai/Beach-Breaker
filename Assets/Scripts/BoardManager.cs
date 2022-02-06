@@ -12,8 +12,9 @@ public class BoardManager : MonoBehaviour
     public int xSize, ySize;
 
     private GameObject[,] candies;
-
     public bool isShifting { get; private set; }
+
+    private Candy selectedCandy;
 
     // Start is called before the first frame update
     void Start()

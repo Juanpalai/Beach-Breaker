@@ -25,15 +25,44 @@ public class Candy : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void SelecCandy()
     {
-        
+        isSelected = true;
+        spriteRenderer.color = seletedColor;
+        previusSeleted = gameObject.GetComponent<Candy>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void DeselectCandy()
     {
-        
+        isSelected=false;
+        spriteRenderer.color = Color.white;
+        previusSeleted = null;
     }
+
+    private void OnMouseDown()
+    {
+        if (spriteRenderer.sprite == null || BoardManager.instance.isShifting)
+        {
+            return;
+        }
+
+        if (isSelected)
+        {
+            DeselectCandy();
+        }
+        else
+        {
+            if(previusSeleted==null)
+            {
+                SelecCandy();
+            }
+            else
+            {
+                previusSeleted.DeselectCandy();
+                //SelecCandy();
+            }
+
+        }
+    }
+
 }
