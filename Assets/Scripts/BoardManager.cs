@@ -16,6 +16,10 @@ public class BoardManager : MonoBehaviour
 
     private Candy selectedCandy;
 
+    //Minimum number of neighboring candies to get a match
+    public const int MiniCandiesMatch = 2;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -78,9 +82,10 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    private List<GameObject> FindMatch(Vector2 direction)
     {
-        
+        List<GameObject> matchingCandies = new List<GameObject>();
     }
+
+    
 }
