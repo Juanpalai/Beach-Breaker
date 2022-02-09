@@ -22,7 +22,7 @@ public class Candy : MonoBehaviour
 
     public Vector3 objective;
 
-    GameObject newCandy;
+   
 
     private void Awake()
     {
@@ -53,9 +53,9 @@ public class Candy : MonoBehaviour
                 {
                     SwapSprite(previousSelected.gameObject);
                     previousSelected.Invoke("FindAllMatches", 0.25f);
-
                     previousSelected.DeselectCandy();
-                    Invoke("FindAllMatches", 0.25f);
+                    Invoke("FindAllMatches", 0.25f);                 
+
                 }
                 else
                 {
@@ -136,8 +136,7 @@ public class Candy : MonoBehaviour
     {
         List<GameObject> matchingCandies = new List<GameObject>();
         RaycastHit2D hit = Physics2D.Raycast(this.transform.position, direction);
-
-        int i = 0;
+       
 
         while (hit.collider != null && hit.collider.gameObject.GetComponent<SpriteRenderer>().sprite == spriteRenderer.sprite)
         {
@@ -162,10 +161,9 @@ public class Candy : MonoBehaviour
             foreach (GameObject candy in matchingCandies)
             {
                 candy.GetComponent<Animator>().SetBool("destroid", true);
-                
-                StartCoroutine(DeleteCandy(candy));
+               
+                StartCoroutine(DeleteNeightboCandy(candy));
             }
-
             return true;
         }
 
@@ -193,19 +191,32 @@ public class Candy : MonoBehaviour
         if(hMatch || vMatch)
         {
             GetComponent<Animator>().SetBool("destroid", true);
-            
+            StartCoroutine(DeleteThisCandy());
+
         }
     }
 
 
-    private IEnumerator DeleteCandy(GameObject candy)
+    private IEnumerator DeleteNeightboCandy(GameObject candy)
     {
         
+           
             yield return new WaitForSeconds(1.2f);
+            candy.GetComponent<Animator>().enabled = false;
             candy.GetComponent<SpriteRenderer>().sprite = null;
-            spriteRenderer.sprite = null;
+            
+            //Destroy(candy);
+            StopCoroutine(BoardManager.instance.FindNullCandies());
+            StartCoroutine(BoardManager.instance.FindNullCandies());
 
+    }
 
+    private IEnumerator DeleteThisCandy()
+    {
+        yield return new WaitForSeconds(1.2f);
+        //Destroy(this.gameObject);
+        GetComponent<Animator>().enabled = false;
+        spriteRenderer.sprite = null;
     }
     
 }

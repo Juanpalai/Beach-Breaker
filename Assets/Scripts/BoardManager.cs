@@ -71,9 +71,9 @@ public class BoardManager : MonoBehaviour
                 GameObject sprite = prfabs[idx];
 
                 //assign the sprite of our pefabs
-               newCandy.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;
+                newCandy.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;
                 newCandy.GetComponent<Animator>().runtimeAnimatorController = sprite.GetComponent<Animator>().runtimeAnimatorController;
-
+                
 
                 //assign an ID
                 newCandy.GetComponent<Candy>().id = idx;
@@ -91,7 +91,7 @@ public class BoardManager : MonoBehaviour
         {
             for (int j = 0; j < ySize; j++)
             {
-                if(candies[xSize, j].GetComponent<Animator>().GetBool("destroid") == true)
+                if(candies[i, j].GetComponent<SpriteRenderer>().sprite == null)
                 {
                     yield return StartCoroutine(MakeCandiesFall(i, j));
                     break;
@@ -100,7 +100,8 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    private IEnumerator MakeCandiesFall(int x, int yStart, float shiftDelay = 0.05f)
+    private IEnumerator MakeCandiesFall(int x, int yStart,
+                                        float shiftDelay = 0.05f)
     {
 
         isShifting = true;
@@ -111,7 +112,7 @@ public class BoardManager : MonoBehaviour
         for (int y = yStart; y < ySize; y++)
         {
             GameObject spriteRenderer = candies[x, y];
-            if (spriteRenderer.GetComponent<SpriteRenderer>() == null)
+            if (spriteRenderer.GetComponent<SpriteRenderer>().sprite == null)
             {
                 nullCandies++;
             }
@@ -119,14 +120,18 @@ public class BoardManager : MonoBehaviour
         }
 
         for (int i = 0; i < nullCandies; i++)
-        {
-            
+        {            
 
             yield return new WaitForSeconds(shiftDelay);
             for (int j = 0; j < renderes.Count - 1; j++)
             {
-                renderes[j] = renderes[j + 1];
-                renderes[j + 1]= GetNewCandy(x, ySize - 1);
+                renderes[j].GetComponent<SpriteRenderer>().sprite = renderes[j + 1].GetComponent<SpriteRenderer>().sprite;
+                renderes[j].GetComponent<Animator>().runtimeAnimatorController = renderes[j + 1].GetComponent<Animator>().runtimeAnimatorController;
+                if (renderes.Count == 1)
+                {
+                    renderes[j + 1].GetComponent<SpriteRenderer>().sprite = GetNewCandy(x, yStart - 1).GetComponent<SpriteRenderer>().sprite;
+                    //renderes[j + 1].GetComponent<Animator>().runtimeAnimatorController = GetNewCandy(x, yStart - 1).GetComponent<Animator>().runtimeAnimatorController;
+                }
             }
         }
 
@@ -137,6 +142,7 @@ public class BoardManager : MonoBehaviour
     {
         List<GameObject> possibleCandies = new List<GameObject>();
         possibleCandies.AddRange(prfabs);
+
 
         if (x > 0)
         {
@@ -153,7 +159,5 @@ public class BoardManager : MonoBehaviour
 
         return possibleCandies[Random.Range(0, possibleCandies.Count)];
     }
-
-
 
 }
