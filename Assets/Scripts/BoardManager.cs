@@ -68,10 +68,13 @@ public class BoardManager : MonoBehaviour
 
 
                 //obtain a prefab
-                GameObject sprite = prfabs[idx];                
+                GameObject sprite = prfabs[idx];
 
                 //assign the sprite of our pefabs
-                newCandy.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;
+               newCandy.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;
+                newCandy.GetComponent<Animator>().runtimeAnimatorController = sprite.GetComponent<Animator>().runtimeAnimatorController;
+
+
                 //assign an ID
                 newCandy.GetComponent<Candy>().id = idx;
 
@@ -80,12 +83,77 @@ public class BoardManager : MonoBehaviour
                 candies[i, j] = newCandy;
             }
         }
-    }
-
-    private List<GameObject> FindMatch(Vector2 direction)
-    {
-        List<GameObject> matchingCandies = new List<GameObject>();
-    }
-
+    } 
     
+    public IEnumerator FindNullCandies()
+    {
+        for(int i = 0; i < xSize; i++)
+        {
+            for (int j = 0; j < ySize; j++)
+            {
+                if(candies[xSize, j].GetComponent<Animator>().GetBool("destroid") == true)
+                {
+                    yield return StartCoroutine(MakeCandiesFall(i, j));
+                    break;
+                }
+            }
+        }
+    }
+
+    private IEnumerator MakeCandiesFall(int x, int yStart, float shiftDelay = 0.05f)
+    {
+
+        isShifting = true;
+
+        List<GameObject> renderes = new List<GameObject>();
+        int nullCandies = 0;
+
+        for (int y = yStart; y < ySize; y++)
+        {
+            GameObject spriteRenderer = candies[x, y];
+            if (spriteRenderer.GetComponent<SpriteRenderer>() == null)
+            {
+                nullCandies++;
+            }
+            renderes.Add(spriteRenderer);
+        }
+
+        for (int i = 0; i < nullCandies; i++)
+        {
+            
+
+            yield return new WaitForSeconds(shiftDelay);
+            for (int j = 0; j < renderes.Count - 1; j++)
+            {
+                renderes[j] = renderes[j + 1];
+                renderes[j + 1]= GetNewCandy(x, ySize - 1);
+            }
+        }
+
+        isShifting = false;
+    }
+
+    private GameObject GetNewCandy(int x, int y)
+    {
+        List<GameObject> possibleCandies = new List<GameObject>();
+        possibleCandies.AddRange(prfabs);
+
+        if (x > 0)
+        {
+            possibleCandies.Remove(candies[x - 1, y]);
+        }
+        if (x < xSize - 1)
+        {
+            possibleCandies.Remove(candies[x + 1, y]);
+        }
+        if (y > 0)
+        {
+            possibleCandies.Remove(candies[x, y - 1]);
+        }
+
+        return possibleCandies[Random.Range(0, possibleCandies.Count)];
+    }
+
+
+
 }
