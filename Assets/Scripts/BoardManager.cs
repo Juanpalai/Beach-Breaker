@@ -130,7 +130,7 @@ public class BoardManager : MonoBehaviour
                 if (renderes.Count == 1)
                 {
                     renderes[j + 1].GetComponent<SpriteRenderer>().sprite = GetNewCandy(x, yStart - 1).GetComponent<SpriteRenderer>().sprite;
-                    //renderes[j + 1].GetComponent<Animator>().runtimeAnimatorController = GetNewCandy(x, yStart - 1).GetComponent<Animator>().runtimeAnimatorController;
+                    renderes[j + 1].GetComponent<Animator>().runtimeAnimatorController = GetNewCandy(x, yStart - 1).GetComponent<Animator>().runtimeAnimatorController;
                 }
             }
         }
