@@ -1,32 +1,28 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardManager : MonoBehaviour
 {
-
-    public static BoardManager instance;
-
-    public List<GameObject> prfabs = new List<GameObject>();
+    public static BoardManager sharedInstance;
+    public List<Sprite> prefabs = new List<Sprite>();
     public GameObject currentCandy;
     public int xSize, ySize;
-    int idx = -1;
 
     private GameObject[,] candies;
-    public bool isShifting { get; private set; }
+
+    public bool isShifting { get; set; }
 
     private Candy selectedCandy;
 
-    //Minimum number of neighboring candies to get a match
-    public const int MiniCandiesMatch = 2;
-
+    public const int MinCandiesToMatch = 2;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (instance == null)
+        if (sharedInstance == null)
         {
-            instance = this;
+            sharedInstance = this;
         }
         else
         {
@@ -34,99 +30,132 @@ public class BoardManager : MonoBehaviour
         }
 
         Vector2 offset = currentCandy.GetComponent<BoxCollider2D>().size;
-        CrateInitialBoard(offset);
+        CreateInitialBoard(offset);
+
     }
 
-    //Initialize the candies array
-    private void CrateInitialBoard(Vector2 offset)
+    private void CreateInitialBoard(Vector2 offset)
     {
         candies = new GameObject[xSize, ySize];
 
-        float starX = this.transform.position.x;
-        float starY = this.transform.position.y;
+        float startX = this.transform.position.x;
+        float startY = this.transform.position.y;
 
+        int idx = -1;
 
-
-        for (int i = 0; i < xSize; i++)
+        for (int x = 0; x < xSize; x++)
         {
-            for (int j = 0; j < ySize; j++)
+            for (int y = 0; y < ySize; y++)
             {
                 GameObject newCandy = Instantiate(
-                    currentCandy,
-                    new Vector3(starX + (offset.x * i),
-                                starY + (offset.y * j),
+                currentCandy,
+                    new Vector3(startX + (offset.x * x),
+                                startY + (offset.y * y),
                                 0),
-                    currentCandy.transform.rotation);
+                    currentCandy.transform.rotation
+                 );
+                newCandy.name = string.Format("Candy[{0}][{1}]", x, y);
 
-                newCandy.name = string.Format("Candy[{0}][{1}]", i, j);
-
-                //conditional to prevent candies appearing together
                 do
                 {
-                    idx = Random.Range(0, prfabs.Count);
-                } while ((i > 0 && idx == candies[i - 1, j].GetComponent<Candy>().id) ||
-                         (j > 0 && idx == candies[i, j - 1].GetComponent<Candy>().id));
+                    idx = Random.Range(0, prefabs.Count);
+                } while ((x > 0 && idx == candies[x - 1, y].GetComponent<Candy>().id) ||
+                        (y > 0 && idx == candies[x, y - 1].GetComponent<Candy>().id));
 
 
-                //obtain a prefab
-                GameObject sprite = prfabs[idx];
 
-                //assign the sprite and animator from our pefabs
-                newCandy.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;
-                newCandy.GetComponent<Animator>().runtimeAnimatorController = sprite.GetComponent<Animator>().runtimeAnimatorController;
-
-
-                //assign an ID
+                Sprite sprite = prefabs[idx];
+                newCandy.GetComponent<SpriteRenderer>().sprite = sprite;
                 newCandy.GetComponent<Candy>().id = idx;
 
                 newCandy.transform.parent = this.transform;
+                candies[x, y] = newCandy;
 
-                candies[i, j] = newCandy;
             }
         }
     }
 
-    public void FindNullCandies()
+    public IEnumerator FindNullCandies()
     {
-        
-        for (int i = 0; i < xSize; i++)
+        for (int x = 0; x < xSize; x++)
         {
-            for (int j = 0; j < ySize; j++)
+            for (int y = 0; y < ySize; y++)
             {
-                if (candies[i, j].GetComponent<SpriteRenderer>().sprite == null)
+                if (candies[x, y].GetComponent<SpriteRenderer>().sprite == null)
                 {
-                    MakeCandies(i, j);
-                    
+                    yield return StartCoroutine(MakeCandiesFall(x, y));
+                    break;
                 }
             }
         }
+
+
+        for (int x = 0; x < xSize; x++)
+        {
+            for (int y = 0; y < ySize; y++)
+            {
+                candies[x, y].GetComponent<Candy>().FindAllMatches();
+            }
+        }
+
     }
 
-    private void MakeCandies(int x, int y)
+    private IEnumerator MakeCandiesFall(int x, int yStart,
+                                        float shiftDelay = 0.05f)
     {
 
         isShifting = true;
-        GameObject spriteRenderer = new GameObject();        
-        //get a new random id
-        idx = Random.Range(0, prfabs.Count);
-       
-        //obtain a prefab
-        GameObject sprite = prfabs[idx];
 
-        //assign the sprite of our pefabs
-        spriteRenderer.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;       
-        spriteRenderer.GetComponent<Animator>().runtimeAnimatorController = sprite.GetComponent<Animator>().runtimeAnimatorController;
-        spriteRenderer.GetComponent<Animator>().enabled = true;
+        List<SpriteRenderer> renderes = new List<SpriteRenderer>();
+        int nullCandies = 0;
 
+        for (int y = yStart; y < ySize; y++)
+        {
+            SpriteRenderer spriteRenderer = candies[x, y].GetComponent<SpriteRenderer>();
+            if (spriteRenderer.sprite == null)
+            {
+                nullCandies++;
+            }
+            renderes.Add(spriteRenderer);
+        }
 
+        for (int i = 0; i < nullCandies; i++)
+        {
+            //GUIManager.sharedInstance.Score += 10;
 
-        //assign an ID
-        spriteRenderer.GetComponent<Candy>().id = idx;        
+            yield return new WaitForSeconds(shiftDelay);
+            for (int j = 0; j < renderes.Count - 1; j++)
+            {
+                renderes[j].sprite = renderes[j + 1].sprite;
+                renderes[j + 1].sprite = GetNewCandy(x, ySize - 1);
+            }
+        }
 
-        candies[x, y] = spriteRenderer;
         isShifting = false;
     }
 
+    private Sprite GetNewCandy(int x, int y)
+    {
+        List<Sprite> possibleCandies = new List<Sprite>();
+        possibleCandies.AddRange(prefabs);
+
+        if (x > 0)
+        {
+            possibleCandies.Remove(
+                candies[x - 1, y].GetComponent<SpriteRenderer>().sprite);
+        }
+        if (x < xSize - 1)
+        {
+            possibleCandies.Remove(
+                candies[x + 1, y].GetComponent<SpriteRenderer>().sprite);
+        }
+        if (y > 0)
+        {
+            possibleCandies.Remove(
+                candies[x, y - 1].GetComponent<SpriteRenderer>().sprite);
+        }
+
+        return possibleCandies[Random.Range(0, possibleCandies.Count)];
+    }
+
 }
-
-

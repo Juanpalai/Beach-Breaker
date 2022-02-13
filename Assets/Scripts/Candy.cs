@@ -1,9 +1,10 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Candy : MonoBehaviour
 {
+
     private static Color selectedColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
     private static Candy previousSelected = null;
 
@@ -14,66 +15,17 @@ public class Candy : MonoBehaviour
 
     private Vector2[] adjacentDirections = new Vector2[]
     {
+        Vector2.up,
         Vector2.down,
         Vector2.left,
-        Vector2.up,
-        Vector2.right,
+        Vector2.right
     };
-
-    public Vector3 objective;
 
 
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        objective = Vector3.zero;
-    }
-
-    private void OnMouseDown()
-    {
-        if (spriteRenderer.sprite == null || BoardManager.instance.isShifting)
-        {
-            return;
-        }
-
-        if (isSelected)
-        {
-            DeselectCandy();
-        }
-        else
-        {
-            if (previousSelected == null)
-            {
-                SelectCandy();
-            }
-            else
-            {
-                if (CanSwipe())
-                {
-                    SwapSprite(previousSelected.gameObject);
-                    previousSelected.Invoke("FindAllMatches", 0.25f);
-                    previousSelected.DeselectCandy();
-                    Invoke("FindAllMatches", 0.25f);
-
-                    
-                }
-                else
-                {
-                    previousSelected.DeselectCandy();
-                    SelectCandy();
-                }
-            }
-        }
-    }
-
-    private void Update()
-    {
-        if (objective != Vector3.zero)
-        {
-            this.transform.position = Vector3.Lerp(this.transform.position, objective, 5 * Time.deltaTime);
-        }
-        
     }
 
     private void SelectCandy()
@@ -90,21 +42,67 @@ public class Candy : MonoBehaviour
         previousSelected = null;
     }
 
-    public void SwapSprite(GameObject candy)
+    private void OnMouseDown()
     {
-        if (id == candy.GetComponent<Candy>().id)
+        if(spriteRenderer.sprite == null || 
+            BoardManager.sharedInstance.isShifting)
         {
             return;
         }
 
-        this.objective = candy.transform.position;
-        candy.GetComponent<Candy>().objective = this.transform.position;
+        if (isSelected)
+        {
+            DeselectCandy();
+        }
+        else
+        {
+            if(previousSelected == null)
+            {
+                SelectCandy();
+            }
+            else
+            {
+                if (CanSwipe())
+                {
+                    SwapSprite(previousSelected);
+                    previousSelected.FindAllMatches();
+                    previousSelected.DeselectCandy();
+                    FindAllMatches();
+
+                    //GUIManager.sharedInstance.MoveCounter--;
+                }
+                else
+                {
+                    previousSelected.DeselectCandy();
+                    SelectCandy();
+                }
+
+
+            }
+        }
     }
+
+    public void SwapSprite(Candy newCandy)
+    {
+        if(spriteRenderer.sprite == 
+            newCandy.GetComponent<SpriteRenderer>().sprite) {
+            return;
+        }
+
+        Sprite oldCandy = newCandy.spriteRenderer.sprite;
+        newCandy.spriteRenderer.sprite = this.spriteRenderer.sprite;
+        this.spriteRenderer.sprite = oldCandy;
+
+        int tempId = newCandy.id;
+        newCandy.id = this.id;
+        this.id = tempId;
+    }
+
 
     private GameObject GetNeighbor(Vector2 direction)
     {
-        RaycastHit2D hit = Physics2D.Raycast(this.transform.position, direction);
-
+        RaycastHit2D hit = Physics2D.Raycast(this.transform.position,
+                                             direction);
         if (hit.collider != null)
         {
             return hit.collider.gameObject;
@@ -119,11 +117,10 @@ public class Candy : MonoBehaviour
     {
         List<GameObject> neighbors = new List<GameObject>();
 
-        foreach (Vector2 direction in adjacentDirections)
+        foreach(Vector2 direction in adjacentDirections)
         {
             neighbors.Add(GetNeighbor(direction));
         }
-
 
         return neighbors;
     }
@@ -133,101 +130,72 @@ public class Candy : MonoBehaviour
         return GetAllNeighbors().Contains(previousSelected.gameObject);
     }
 
-    //Consulta vecinos en direccion del parametro
+
     private List<GameObject> FindMatch(Vector2 direction)
     {
         List<GameObject> matchingCandies = new List<GameObject>();
-        RaycastHit2D hit = Physics2D.Raycast(this.transform.position, direction);
 
-
-        while (hit.collider != null && hit.collider.gameObject.GetComponent<SpriteRenderer>().sprite == spriteRenderer.sprite)
+        RaycastHit2D hit = Physics2D.Raycast(this.transform.position,
+                                             direction);
+        while(hit.collider != null &&
+              hit.collider.GetComponent<SpriteRenderer>().sprite == 
+                 spriteRenderer.sprite)
         {
             matchingCandies.Add(hit.collider.gameObject);
-            hit = Physics2D.Raycast(hit.collider.gameObject.transform.position, direction);
+            hit = Physics2D.Raycast(hit.collider.transform.position,
+                                    direction);
         }
 
         return matchingCandies;
     }
 
+
     private bool ClearMatch(Vector2[] directions)
     {
         List<GameObject> matchingCandies = new List<GameObject>();
 
-        foreach (Vector2 direction in directions)
+        foreach(Vector2 direction in directions)
         {
             matchingCandies.AddRange(FindMatch(direction));
         }
-
-        if (matchingCandies.Count >= BoardManager.MiniCandiesMatch)
+        if (matchingCandies.Count >= BoardManager.MinCandiesToMatch)
         {
-            foreach (GameObject candy in matchingCandies)
+            foreach(GameObject candy in matchingCandies)
             {
-                candy.GetComponent<Animator>().SetBool("destroid", true);
-
-                StartCoroutine(DeleteNeightboCandy(candy));
-                
-
+                candy.GetComponent<SpriteRenderer>().sprite = null;
             }
+
             return true;
         }
-
-        return false;
+        else
+        {
+            return false;
+        }
     }
 
     public void FindAllMatches()
     {
-        if (spriteRenderer.sprite == null)
+        if(spriteRenderer.sprite == null)
         {
             return;
         }
 
         bool hMatch = ClearMatch(new Vector2[2]
         {
-            Vector2.left,
-            Vector2.right,
+            Vector2.left, Vector2.right
         });
 
         bool vMatch = ClearMatch(new Vector2[2]
         {
-            Vector2.up,
-            Vector2.down,
+            Vector2.up, Vector2.down
         });
+
         if (hMatch || vMatch)
         {
-            GetComponent<Animator>().SetBool("destroid", true);
-            StartCoroutine(DeleteThisCandy());
-            
+            spriteRenderer.sprite = null;
+            StopCoroutine(BoardManager.sharedInstance.FindNullCandies());
+            StartCoroutine(BoardManager.sharedInstance.FindNullCandies());
 
         }
     }
-
-
-    private IEnumerator DeleteNeightboCandy(GameObject candy)
-    {
-
-
-        yield return new WaitForSeconds(1.2f);
-        candy.GetComponent<Animator>().enabled = false;
-        candy.GetComponent<SpriteRenderer>().sprite = null;
-        BoardManager.instance.FindNullCandies();
-
-
-        //Destroy(candy);
-
-
-
-    }
-
-    private IEnumerator DeleteThisCandy()
-    {
-        yield return new WaitForSeconds(1.2f);
-        //Destroy(this.gameObject);
-        GetComponent<Animator>().enabled = false;
-        spriteRenderer.sprite = null;
-        BoardManager.instance.FindNullCandies();
-        
-
-    }
-
 }
-
