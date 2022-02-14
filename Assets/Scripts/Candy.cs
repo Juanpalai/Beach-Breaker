@@ -44,7 +44,7 @@ public class Candy : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if(spriteRenderer.sprite == null || 
+        if (spriteRenderer.sprite == null ||
             BoardManager.sharedInstance.isShifting)
         {
             return;
@@ -56,7 +56,7 @@ public class Candy : MonoBehaviour
         }
         else
         {
-            if(previousSelected == null)
+            if (previousSelected == null)
             {
                 SelectCandy();
             }
@@ -84,8 +84,9 @@ public class Candy : MonoBehaviour
 
     public void SwapSprite(Candy newCandy)
     {
-        if(spriteRenderer.sprite == 
-            newCandy.GetComponent<SpriteRenderer>().sprite) {
+        if (spriteRenderer.sprite ==
+            newCandy.GetComponent<SpriteRenderer>().sprite)
+        {
             return;
         }
 
@@ -117,7 +118,7 @@ public class Candy : MonoBehaviour
     {
         List<GameObject> neighbors = new List<GameObject>();
 
-        foreach(Vector2 direction in adjacentDirections)
+        foreach (Vector2 direction in adjacentDirections)
         {
             neighbors.Add(GetNeighbor(direction));
         }
@@ -137,8 +138,8 @@ public class Candy : MonoBehaviour
 
         RaycastHit2D hit = Physics2D.Raycast(this.transform.position,
                                              direction);
-        while(hit.collider != null &&
-              hit.collider.GetComponent<SpriteRenderer>().sprite == 
+        while (hit.collider != null &&
+              hit.collider.GetComponent<SpriteRenderer>().sprite ==
                  spriteRenderer.sprite)
         {
             matchingCandies.Add(hit.collider.gameObject);
@@ -154,15 +155,17 @@ public class Candy : MonoBehaviour
     {
         List<GameObject> matchingCandies = new List<GameObject>();
 
-        foreach(Vector2 direction in directions)
+        foreach (Vector2 direction in directions)
         {
             matchingCandies.AddRange(FindMatch(direction));
         }
         if (matchingCandies.Count >= BoardManager.MinCandiesToMatch)
         {
-            foreach(GameObject candy in matchingCandies)
+            foreach (GameObject candy in matchingCandies)
             {
+                //StartCoroutine(EnableAnimation(candy));
                 candy.GetComponent<SpriteRenderer>().sprite = null;
+
             }
 
             return true;
@@ -175,7 +178,7 @@ public class Candy : MonoBehaviour
 
     public void FindAllMatches()
     {
-        if(spriteRenderer.sprite == null)
+        if (spriteRenderer.sprite == null)
         {
             return;
         }
@@ -192,10 +195,20 @@ public class Candy : MonoBehaviour
 
         if (hMatch || vMatch)
         {
+
             spriteRenderer.sprite = null;
             StopCoroutine(BoardManager.sharedInstance.FindNullCandies());
             StartCoroutine(BoardManager.sharedInstance.FindNullCandies());
 
         }
+    }
+    private IEnumerator EnableAnimation(GameObject candy)
+    {
+        candy.GetComponent<Animator>().enabled = true;
+
+        yield return new WaitForSeconds(0.5f);
+
+        candy.GetComponent<Animator>().enabled = false;
+        candy.GetComponent<SpriteRenderer>().sprite = null;
     }
 }

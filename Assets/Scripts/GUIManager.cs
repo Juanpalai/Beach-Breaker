@@ -31,7 +31,7 @@ public class GUIManager : MonoBehaviour
         {
             moveCounter = value;
             movesText.text = "Moves: " + moveCounter;
-            if (moveCounter<=0)
+            if (moveCounter <= 0)
             {
                 StartCoroutine(GameOver());
             }

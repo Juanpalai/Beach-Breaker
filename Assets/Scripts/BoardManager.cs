@@ -5,7 +5,7 @@ using UnityEngine;
 public class BoardManager : MonoBehaviour
 {
     public static BoardManager sharedInstance;
-    public List<Sprite> prefabs = new List<Sprite>();
+    public List<GameObject> prefabs = new List<GameObject>();
     public GameObject currentCandy;
     public int xSize, ySize;
 
@@ -64,8 +64,10 @@ public class BoardManager : MonoBehaviour
 
 
 
-                Sprite sprite = prefabs[idx];
-                newCandy.GetComponent<SpriteRenderer>().sprite = sprite;
+                GameObject sprite = prefabs[idx];
+                newCandy.GetComponent<SpriteRenderer>().sprite = sprite.GetComponent<SpriteRenderer>().sprite;
+                newCandy.GetComponent<Animator>().runtimeAnimatorController = sprite.GetComponent<Animator>().runtimeAnimatorController;
+                newCandy.GetComponent<Animator>().enabled = false;
                 newCandy.GetComponent<Candy>().id = idx;
 
                 newCandy.transform.parent = this.transform;
@@ -128,36 +130,38 @@ public class BoardManager : MonoBehaviour
             for (int j = 0; j < renderes.Count - 1; j++)
             {
                 renderes[j].sprite = renderes[j + 1].sprite;
-                renderes[j + 1].sprite = GetNewCandy(x, ySize - 1);
+                renderes[j + 1].sprite = GetNewCandy(x, ySize - 1).GetComponent<SpriteRenderer>().sprite;
             }
         }
 
         isShifting = false;
     }
 
-    private Sprite GetNewCandy(int x, int y)
+    private GameObject GetNewCandy(int x, int y)
     {
-        List<Sprite> possibleCandies = new List<Sprite>();
+        List<GameObject> possibleCandies = new List<GameObject>();
         possibleCandies.AddRange(prefabs);
 
         //Conditionals for not creating the same candy 
         if (x > 0)
         {
             possibleCandies.Remove(
-                candies[x - 1, y].GetComponent<SpriteRenderer>().sprite);
+                candies[x - 1, y]);
         }
         if (x < xSize - 1)
         {
             possibleCandies.Remove(
-                candies[x + 1, y].GetComponent<SpriteRenderer>().sprite);
+                candies[x + 1, y]);
         }
         if (y > 0)
         {
             possibleCandies.Remove(
-                candies[x, y - 1].GetComponent<SpriteRenderer>().sprite);
+                candies[x, y - 1]);
         }
 
         return possibleCandies[Random.Range(0, possibleCandies.Count)];
     }
+
+
 
 }
