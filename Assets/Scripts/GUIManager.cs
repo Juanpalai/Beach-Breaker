@@ -31,6 +31,10 @@ public class GUIManager : MonoBehaviour
         {
             moveCounter = value;
             movesText.text = "Moves: " + moveCounter;
+            if (moveCounter<=0)
+            {
+                StartCoroutine(GameOver());
+            }
         }
     }
 
@@ -54,9 +58,11 @@ public class GUIManager : MonoBehaviour
         scoreText.text = "Score: " + score;
     }
 
-    // Update is called once per frame
-    void Update()
+    private IEnumerator GameOver()
     {
-
+        yield return new WaitUntil(() => !BoardManager.sharedInstance.isActiveAndEnabled);
+        yield return new WaitForSeconds(0.25f);
     }
+
+
 }

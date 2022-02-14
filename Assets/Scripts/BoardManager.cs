@@ -75,6 +75,7 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    //find in which spaces there are destroyed candies
     public IEnumerator FindNullCandies()
     {
         for (int x = 0; x < xSize; x++)
@@ -89,7 +90,7 @@ public class BoardManager : MonoBehaviour
             }
         }
 
-
+        //After creating new candies, check for new matches
         for (int x = 0; x < xSize; x++)
         {
             for (int y = 0; y < ySize; y++)
@@ -121,7 +122,7 @@ public class BoardManager : MonoBehaviour
 
         for (int i = 0; i < nullCandies; i++)
         {
-            //GUIManager.sharedInstance.Score += 10;
+            GUIManager.sharedInstance.Score += 10;
 
             yield return new WaitForSeconds(shiftDelay);
             for (int j = 0; j < renderes.Count - 1; j++)
@@ -139,6 +140,7 @@ public class BoardManager : MonoBehaviour
         List<Sprite> possibleCandies = new List<Sprite>();
         possibleCandies.AddRange(prefabs);
 
+        //Conditionals for not creating the same candy 
         if (x > 0)
         {
             possibleCandies.Remove(
