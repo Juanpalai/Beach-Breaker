@@ -7,8 +7,10 @@ public class Candy : MonoBehaviour
 
     private static Color selectedColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
     private static Candy previousSelected = null;
+    public List<RuntimeAnimatorController> animations = new List<RuntimeAnimatorController>();
 
     private SpriteRenderer spriteRenderer;
+    
     private bool isSelected = false;
 
     public int id;
@@ -163,9 +165,8 @@ public class Candy : MonoBehaviour
         {
             foreach (GameObject candy in matchingCandies)
             {
-                //StartCoroutine(EnableAnimation(candy));
-                candy.GetComponent<SpriteRenderer>().sprite = null;
-
+               //candy.GetComponent<SpriteRenderer>().sprite = null;
+                StartCoroutine(EnableAnimation(candy));
             }
 
             return true;
@@ -195,20 +196,44 @@ public class Candy : MonoBehaviour
 
         if (hMatch || vMatch)
         {
+            //spriteRenderer.sprite = null;
+            StartCoroutine(EnableThisAnimation(this.gameObject));
+            
+           
 
-            spriteRenderer.sprite = null;
-            StopCoroutine(BoardManager.sharedInstance.FindNullCandies());
-            StartCoroutine(BoardManager.sharedInstance.FindNullCandies());
 
         }
     }
+
     private IEnumerator EnableAnimation(GameObject candy)
     {
+
+
         candy.GetComponent<Animator>().enabled = true;
-
-        yield return new WaitForSeconds(0.5f);
-
-        candy.GetComponent<Animator>().enabled = false;
+        int idx = candy.GetComponent<Candy>().id;        
+        candy.GetComponent<Animator>().runtimeAnimatorController = animations[idx];
+        yield return new WaitForSeconds(0.4f);
+        candy.GetComponent<Animator>().enabled = false;        
         candy.GetComponent<SpriteRenderer>().sprite = null;
+    }
+    private IEnumerator EnableThisAnimation(GameObject candy)
+    {
+
+
+        candy.GetComponent<Animator>().enabled = true;
+        int idx = candy.GetComponent<Candy>().id;
+        candy.GetComponent<Animator>().runtimeAnimatorController = animations[idx];
+        yield return new WaitForSeconds(0.4f);
+        candy.GetComponent<Animator>().enabled = false;        
+        candy.GetComponent<SpriteRenderer>().sprite = null;
+       
+        //StopCoroutine(BoardManager.sharedInstance.FindNullCandies());
+        StartCoroutine(FindNullCandies());
+    }
+    private IEnumerator FindNullCandies()
+    {
+        yield return new WaitForSeconds(0.41f);
+        StopCoroutine(BoardManager.sharedInstance.FindNullCandies());
+        StartCoroutine(BoardManager.sharedInstance.FindNullCandies());
     }
 }

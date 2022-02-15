@@ -97,6 +97,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a859744430e6a4d6ba2774dff6184c09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animations:
+  - {fileID: 9100000, guid: fe00574409ab264448761edde2abdb2a, type: 2}
+  - {fileID: 9100000, guid: e061a20e98bd75a45be60bfd86195f91, type: 2}
+  - {fileID: 9100000, guid: 2816a7e32e9af4d488d16e4cfa1b7ace, type: 2}
+  - {fileID: 9100000, guid: 6ea058ead45ee1948887a107a58b95b6, type: 2}
+  - {fileID: 9100000, guid: 6a88aba655279144bbd6043b2c633904, type: 2}
+  - {fileID: 9100000, guid: f10254445284b2b45898a8722cdbe299, type: 2}
   id: 0
 --- !u!61 &4447661655122133637
 BoxCollider2D:
