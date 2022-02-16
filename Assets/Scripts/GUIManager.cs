@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GUIManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class GUIManager : MonoBehaviour
     public Text movesText, scoreText;
     private int moveCounter;
     private int score;
+
 
     public int Score
     {
@@ -53,15 +55,17 @@ public class GUIManager : MonoBehaviour
         }
 
         score = 0;
-        moveCounter = 30;
+        moveCounter = 15;
         movesText.text = "Moves: " + moveCounter;
         scoreText.text = "Score: " + score;
     }
 
     private IEnumerator GameOver()
     {
-        yield return new WaitUntil(() => !BoardManager.sharedInstance.isActiveAndEnabled);
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(1.5f);
+
+        PlayerPrefs.SetInt("FinalScore", score);
+        SceneManager.LoadScene("GameOver");
     }
 
 

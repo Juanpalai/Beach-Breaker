@@ -89,7 +89,7 @@ public class BoardManager : MonoBehaviour
             }
         }
 
-
+        //Checking for destroyed objects after raining candies
         for (int x = 0; x < xSize; x++)
         {
             for (int y = 0; y < ySize; y++)
@@ -124,9 +124,13 @@ public class BoardManager : MonoBehaviour
 
         for (int i = 0; i < nullCandies; i++)
         {
-            GUIManager.sharedInstance.Score += 10;
+
+            //Score increase per candy
+            GUIManager.sharedInstance.Score += 5;
 
             yield return new WaitForSeconds(shiftDelay);
+
+            //Assign new sprite
             for (int j = 0; j < renderes.Count - 1; j++)
             {
                 renderes[j].sprite = renderes[j + 1].sprite;
@@ -134,6 +138,7 @@ public class BoardManager : MonoBehaviour
             }
         }
 
+        //Re-assign the ID depending on the sprite
         for (int i = 0; i < xSize; i++)
         {
             for (int j = 0; j < ySize; j++)
@@ -159,6 +164,7 @@ public class BoardManager : MonoBehaviour
         List<Sprite> possibleCandies = new List<Sprite>();
         possibleCandies.AddRange(prefabs);
 
+        //Conditionals for not repeating candies
         if (x > 0)
         {
             possibleCandies.Remove(
